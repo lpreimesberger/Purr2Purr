@@ -1,12 +1,24 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:page_transition/page_transition.dart';
+import 'package:purr2purr/events.dart';
 import 'package:purr2purr/name.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:purr2purr/login.dart';
+import 'package:purr2purr/state.dart';
+import 'package:shared_value/shared_value.dart';
 import 'package:uuid/uuid.dart';
+import 'package:path/path.dart' as path;
+import 'package:path_provider/path_provider.dart';
+import 'dart:io' as io;
 
 void main() {
-  runApp(const MyApp());
+
+  runApp(SharedValue.wrapApp(
+    MyApp(),
+  ),);
 }
 
 class MyApp extends StatelessWidget {
@@ -50,9 +62,33 @@ class _MyHomePageState extends State<MyHomePage> {
 
   startupCheck() async {
     // see if the luser is 'logged in' or not
+    io.Directory applicationDirectory = await getApplicationDocumentsDirectory();
+    String openableDatabase = path.join(applicationDirectory.path, "p2p.db");
+    bool openableDatabaseExists = await io.File(openableDatabase).exists();
+    // load prefs/globals
+    dbVersion.load();
+    burnerName.load();
+    phoneUUID.load();
     final prefs = await SharedPreferences.getInstance();
     final String? savedID = prefs.getString("uuid");
     String? savedName = prefs.getString("name");
+    //double? dbVersion = prefs.getDouble("db_version");
+    String data = await DefaultAssetBundle.of(context).loadString("assets/purr.json");
+    final jsonResult = jsonDecode(data); //latest Dart
+    // one of the oddities of mobile is we cant open the database directly from
+    // assets, since it's a vfs inside the signed application zip
+    if(
+          dbVersion.$ < (jsonResult["db_version"] as double) || // cached db old
+              ! openableDatabaseExists ){ // or just not there
+        ByteData data = await rootBundle.load(path.join("assets", "p2p.db"));
+        List<int> bytes =
+        data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes);
+        await io.File(openableDatabase).writeAsBytes(bytes, flush: true);
+        dbVersion.$ = (jsonResult["db_version"] as double);
+        dbVersion.save();
+
+    }
+
     // if we have no saved info - create and generate
     // this doesn't need interaction - let it go
     if(savedID == null){
@@ -96,6 +132,12 @@ class _MyHomePageState extends State<MyHomePage> {
               child: Text('Login'),
             ),
             MaterialButton(onPressed: toLogin, ),
+            OutlinedButton(
+              onPressed: toEvents,
+              child: Text('Events'),
+            ),
+            MaterialButton(onPressed: toEvents, ),
+
           ],
         ),
       ),
@@ -113,6 +155,20 @@ class _MyHomePageState extends State<MyHomePage> {
             ));
 
   }
+
+  toEvents(){
+    Navigator.push(context,
+        PageTransition(
+          alignment: Alignment.bottomCenter,
+          curve: Curves.easeInOut,
+          duration: Duration(milliseconds: 600),
+          reverseDuration: Duration(milliseconds: 600),
+          type: PageTransitionType.rightToLeftWithFade,
+          child: EventsPage(title: '',),
+        ));
+
+  }
+
 }
 
 
