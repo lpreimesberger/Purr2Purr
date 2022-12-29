@@ -1,9 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
-import 'name.dart';
-import 'dart:async';
-
 import 'package:flutter/widgets.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
@@ -33,7 +29,7 @@ class EmployeeDataSource extends DataGridSource {
         cells: row.getCells().map<Widget>((e) {
           return Container(
             alignment: Alignment.center,
-            padding: EdgeInsets.all(8.0),
+            padding: const EdgeInsets.all(8.0),
             child: Text(e.value.toString()),
           );
         }).toList());
@@ -118,7 +114,7 @@ class _EventsPageState extends State<EventsPage> {
       appBar: AppBar(
         // Here we take the value from the EventsPage object that was created by
         // the App.build method, and use it to set our appbar title.
-        title: Text("Events"),
+        title: const Text("Events"),
       ),
       body: Stack(
         children: <Widget>[
@@ -133,32 +129,32 @@ class _EventsPageState extends State<EventsPage> {
                     GridColumn(
                         columnName: 'id',
                         label: Container(
-                            padding: EdgeInsets.all(16.0),
+                            padding: const EdgeInsets.all(16.0),
                             alignment: Alignment.center,
-                            child: Text(
+                            child: const Text(
                               'ID',
                             ))),
                     GridColumn(
                         columnName: 'name',
                         label: Container(
-                            padding: EdgeInsets.all(8.0),
+                            padding: const EdgeInsets.all(8.0),
                             alignment: Alignment.center,
-                            child: Text('Name'))),
+                            child: const Text('Name'))),
                     GridColumn(
                         columnName: 'designation',
                         label: Container(
-                            padding: EdgeInsets.all(8.0),
+                            padding: const EdgeInsets.all(8.0),
                             alignment: Alignment.center,
-                            child: Text(
+                            child: const Text(
                               'Designation',
                               overflow: TextOverflow.ellipsis,
                             ))),
                     GridColumn(
                         columnName: 'salary',
                         label: Container(
-                            padding: EdgeInsets.all(8.0),
+                            padding: const EdgeInsets.all(8.0),
                             alignment: Alignment.center,
-                            child: Text('Salary'))),
+                            child: const Text('Salary'))),
                   ],
                 ),
               ],)),

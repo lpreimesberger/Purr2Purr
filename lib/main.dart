@@ -1,23 +1,20 @@
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:page_transition/page_transition.dart';
 import 'package:purr2purr/events.dart';
-import 'package:purr2purr/name.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:purr2purr/login.dart';
 import 'package:purr2purr/state.dart';
 import 'package:shared_value/shared_value.dart';
-import 'package:uuid/uuid.dart';
 import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
 import 'dart:io' as io;
+import 'package:loading_indicator/loading_indicator.dart';
 
 void main() {
 
   runApp(SharedValue.wrapApp(
-    MyApp(),
+    const MyApp(),
   ),);
 }
 
@@ -59,9 +56,10 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   var uuid = "";        // global phone id - reset on reinstall
   var name = "";
+  bool loading = true;
 
   startupCheck() async {
-    // see if the luser is 'logged in' or not
+    // see if the user is 'logged in' or not
     io.Directory applicationDirectory = await getApplicationDocumentsDirectory();
     String openableDatabase = path.join(applicationDirectory.path, "p2p.db");
     bool openableDatabaseExists = await io.File(openableDatabase).exists();
@@ -69,10 +67,6 @@ class _MyHomePageState extends State<MyHomePage> {
     dbVersion.load();
     burnerName.load();
     phoneUUID.load();
-    final prefs = await SharedPreferences.getInstance();
-    final String? savedID = prefs.getString("uuid");
-    String? savedName = prefs.getString("name");
-    //double? dbVersion = prefs.getDouble("db_version");
     String data = await DefaultAssetBundle.of(context).loadString("assets/purr.json");
     final jsonResult = jsonDecode(data); //latest Dart
     // one of the oddities of mobile is we cant open the database directly from
@@ -88,18 +82,9 @@ class _MyHomePageState extends State<MyHomePage> {
         dbVersion.save();
 
     }
-
-    // if we have no saved info - create and generate
-    // this doesn't need interaction - let it go
-    if(savedID == null){
-      uuid = const Uuid().v4();
-      prefs.setString("uuid", uuid);
-    }
-    // let them fix their name if it's bad by jumping to 'login'
-    if(savedName == null){
-      savedName = getName();
-      prefs.setString("name", savedName!).then((value) => { toLogin() });
-    }
+    setState(() {
+      loading = false;
+    });
   }
 
   @override
@@ -124,17 +109,23 @@ class _MyHomePageState extends State<MyHomePage> {
         title: Text(widget.title),
       ),
       body: Center(
-        child: Column(
+        child: loading ? const LoadingIndicator(
+            indicatorType: Indicator.ballPulse, /// Required, The loading type of the widget
+            colors: const [Colors.white],       /// Optional, The color collections
+            strokeWidth: 2,                     /// Optional, The stroke of the line, only applicable to widget which contains line
+            backgroundColor: Colors.black,      /// Optional, Background of the widget
+            pathBackgroundColor: Colors.black   /// Optional, the stroke backgroundColor
+        ) : Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             OutlinedButton(
               onPressed: toLogin,
-              child: Text('Login'),
+              child: const Text('Login'),
             ),
             MaterialButton(onPressed: toLogin, ),
             OutlinedButton(
               onPressed: toEvents,
-              child: Text('Events'),
+              child: const Text('Events'),
             ),
             MaterialButton(onPressed: toEvents, ),
 
@@ -148,10 +139,10 @@ class _MyHomePageState extends State<MyHomePage> {
         PageTransition(
             alignment: Alignment.bottomCenter,
             curve: Curves.easeInOut,
-            duration: Duration(milliseconds: 600),
-            reverseDuration: Duration(milliseconds: 600),
+            duration: const Duration(milliseconds: 600),
+            reverseDuration: const Duration(milliseconds: 600),
             type: PageTransitionType.rightToLeftWithFade,
-            child: LoginPage(title: '',),
+            child: const LoginPage(title: '',),
             ));
 
   }
@@ -161,10 +152,10 @@ class _MyHomePageState extends State<MyHomePage> {
         PageTransition(
           alignment: Alignment.bottomCenter,
           curve: Curves.easeInOut,
-          duration: Duration(milliseconds: 600),
-          reverseDuration: Duration(milliseconds: 600),
+          duration: const Duration(milliseconds: 600),
+          reverseDuration: const Duration(milliseconds: 600),
           type: PageTransitionType.rightToLeftWithFade,
-          child: EventsPage(title: '',),
+          child: const EventsPage(title: '',),
         ));
 
   }

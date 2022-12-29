@@ -18,7 +18,7 @@ final SharedValue<String> phoneUUID = SharedValue(
 
 final SharedValue<String> burnerName = SharedValue(
   value: getName(),
-  key: "db_version", // disk storage key for shared_preferences
+  key: "burner_name", // disk storage key for shared_preferences
   autosave: true, // autosave to shared prefs when value changes
 );
 
