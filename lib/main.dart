@@ -7,9 +7,10 @@ import 'package:purr2purr/login.dart';
 import 'package:purr2purr/state.dart';
 import 'package:shared_value/shared_value.dart';
 import 'package:path/path.dart' as path;
-import 'package:path_provider/path_provider.dart';
 import 'dart:io' as io;
 import 'package:loading_indicator/loading_indicator.dart';
+import 'package:sqflite/sqflite.dart';
+import 'dart:developer' as trace;
 
 void main() {
 
@@ -60,8 +61,11 @@ class _MyHomePageState extends State<MyHomePage> {
 
   startupCheck() async {
     // see if the user is 'logged in' or not
-    io.Directory applicationDirectory = await getApplicationDocumentsDirectory();
-    String openableDatabase = path.join(applicationDirectory.path, "p2p.db");
+    var mahPath = await getDatabasesPath();
+    String openableDatabase = path.join(mahPath, "p2p.db");
+    trace.log("opening sqlite db @ $mahPath");
+    trace.log("opening sqlite db @ $openableDatabase");
+
     bool openableDatabaseExists = await io.File(openableDatabase).exists();
     // load prefs/globals
     dbVersion.load();
@@ -74,6 +78,7 @@ class _MyHomePageState extends State<MyHomePage> {
     if(
           dbVersion.$ < (jsonResult["db_version"] as double) || // cached db old
               ! openableDatabaseExists ){ // or just not there
+        trace.log("Copying sqlite from inside the app to hot storage on the device...");
         ByteData data = await rootBundle.load(path.join("assets", "p2p.db"));
         List<int> bytes =
         data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes);

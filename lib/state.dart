@@ -1,5 +1,3 @@
-import 'dart:async';
-import 'package:flutter/material.dart';
 import 'package:purr2purr/name.dart';
 import 'package:shared_value/shared_value.dart';
 import 'package:uuid/uuid.dart';
@@ -12,7 +10,7 @@ final SharedValue<double> dbVersion = SharedValue(
 
 final SharedValue<String> phoneUUID = SharedValue(
   value: const Uuid().v4(),
-  key: "uuid", // disk storage key for shared_preferences
+  key: "phone_uuid", // disk storage key for shared_preferences
   autosave: true, // autosave to shared prefs when value changes
 );
 

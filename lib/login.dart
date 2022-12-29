@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import 'name.dart';
 
@@ -49,13 +48,13 @@ class _LoginPageState extends State<LoginPage> {
       appBar: AppBar(
         // Here we take the value from the LoginPage object that was created by
         // the App.build method, and use it to set our appbar title.
-        title: Text("Purr2Purr 'Login'"),
+        title: const Text("Purr2Purr 'Login'"),
       ),
       body: Stack(
         children: <Widget>[
-          new Container(
-            decoration: new BoxDecoration(
-              image: new DecorationImage(image: new AssetImage("assets/dust.png"), fit: BoxFit.cover,),
+          Container(
+            decoration: const BoxDecoration(
+              image: DecorationImage(image: AssetImage("assets/dust.png"), fit: BoxFit.cover,),
             ),
           ),
           Center(
@@ -68,7 +67,7 @@ class _LoginPageState extends State<LoginPage> {
                  const Text("Just want the schedule?  Forget about it.  Punch Login and get on with it."),
                 TextFormField(
                   initialValue: getName(),
-style: TextStyle(backgroundColor: Colors.grey),
+style: const TextStyle(backgroundColor: Colors.grey),
                   decoration: const InputDecoration(
                     border: OutlineInputBorder(),
                     hintText: 'Enter a Playa Name',
@@ -76,7 +75,7 @@ style: TextStyle(backgroundColor: Colors.grey),
                 ),
                 OutlinedButton(
                   onPressed: (){},
-                  child: Text('Login'),
+                  child: const Text('Login'),
                 ),
 
               ],)),
