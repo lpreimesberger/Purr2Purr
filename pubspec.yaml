@@ -46,6 +46,8 @@ dependencies:
   path_provider: ^2.0.11
   shared_value: ^3.0.0
   loading_indicator: ^3.1.0
+  dropdown_button2: ^1.9.2
+  intl: ^0.18.0
 
 
 dev_dependencies:

@@ -1,20 +1,26 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 import 'dart:developer' as trace;
+import 'package:dropdown_button2/dropdown_button2.dart';
+import 'package:intl/intl.dart';
 
 class EventsDataSource extends DataGridSource {
   /// Creates the employee data source class with required details.
   EventsDataSource({required List<EventObject> eventData}) {
     _eventData = eventData
         .map<DataGridRow>((e) => DataGridRow(cells: [
-      DataGridCell<int>(columnName: 'id', value: e.id),
-      DataGridCell<String>(columnName: 'name', value: e.name),
-      DataGridCell<String>(
-          columnName: 'designation', value: e.description),
-      DataGridCell<String>(columnName: 'salary', value: e.camp),
-    ]))
+              DataGridCell<String>(columnName: 'start', value: e.start),
+              DataGridCell<String>(columnName: 'end', value: e.end),
+              DataGridCell<String>(columnName: 'name', value: e.name),
+              DataGridCell<String>(
+                  columnName: 'location', value: e.campLocation),
+              DataGridCell<String>(
+                  columnName: 'designation', value: e.description),
+              DataGridCell<String>(columnName: 'what', value: e.camp),
+            ]))
         .toList();
   }
 
@@ -27,19 +33,20 @@ class EventsDataSource extends DataGridSource {
   DataGridRowAdapter buildRow(DataGridRow row) {
     return DataGridRowAdapter(
         cells: row.getCells().map<Widget>((e) {
-          return Container(
-            alignment: Alignment.center,
-            padding: const EdgeInsets.all(8.0),
-            child: Text(e.value.toString()),
-          );
-        }).toList());
+      return Container(
+        alignment: Alignment.center,
+        padding: const EdgeInsets.all(8.0),
+        child: Text(e.value.toString()),
+      );
+    }).toList());
   }
-
 }
 
 class EventsPage extends StatefulWidget {
   const EventsPage({super.key, required this.title});
+
   final String title;
+
   @override
   State<EventsPage> createState() => _EventsPageState();
 }
@@ -47,39 +54,131 @@ class EventsPage extends StatefulWidget {
 class _EventsPageState extends State<EventsPage> {
   List<EventObject> events = <EventObject>[];
   late EventsDataSource eventDataSource;
+  final gateOpen = DateTime(2022, 08, 29, 0, 0);
+  final List<String> items = [
+    'Gate Open',
+    'Monday',
+    'Tuesday',
+    'Wednesday',
+    'Thursday',
+    'Friday',
+    'Man Burn',
+    'Temple Burn',
+    'Teardown Monday',
+    'Immediacy'
+  ];
 
+  String? selectedValue = "Immediacy";
+
+  playaPrint(DateTime d) {
+    // org uses ISO but PST for reasons - 2022-09-02T15:00:00-07:00
+    // d is GMT - fix is
+    d = d.subtract(Duration(hours: 7));
+    var f = NumberFormat("00", "en_US");
+    var year = d.year;
+    var day = f.format(d.day);
+    var mon = f.format(d.month);
+    var h = f.format(d.hour);
+    var m = f.format(d.minute);
+    //baby steps so flutter does it right
+    var rv = "$year-$mon-$day";
+    return "${rv}T$h:$m:00-07:00";
+  }
 
   fetchEvents() async {
     var start = "2022-09-02T15:00:00-07:00";
     var end = "2022-09-03T15:00:00-07:00";
+    var window = DateTime.now();
+    if (selectedValue == "Immediacy") {
+      if (kDebugMode) {
+        // pretend
+        trace.log("setting time to default since we are debugging");
+        start = "2022-09-02T15:00:00-07:00";
+      } else {
+        start = playaPrint(DateTime.now());
+      }
+      var temp = DateTime.parse(start);
+      var endWindow = temp.add(Duration(hours: 3));
+      end = playaPrint(endWindow);
+    } else {
+      switch (selectedValue) {
+        case 'Gate Open':
+          window = gateOpen;
+          break;
+        case 'Monday':
+          window = gateOpen.add(const Duration(days: 1));
+          break;
+        case 'Tuesday':
+          window = gateOpen.add(const Duration(days: 2));
+          break;
+
+        case 'Wednesday':
+          window = gateOpen.add(const Duration(days: 3));
+          break;
+
+        case 'Thursday':
+          window = gateOpen.add(const Duration(days: 4));
+          break;
+
+        case 'Friday':
+          window = gateOpen.add(const Duration(days: 5));
+          break;
+
+        case 'Man Burn':
+          window = gateOpen.add(const Duration(days: 6));
+          break;
+
+        case 'Temple Burn':
+          window = gateOpen.add(const Duration(days: 7));
+          break;
+
+        case 'Teardown Monday':
+          window = gateOpen.add(const Duration(days: 8));
+          break;
+      }
+      var endWindow = window.add(const Duration(hours: 24));
+      start = playaPrint(window);
+      end = playaPrint(endWindow);
+
+    }
+
     final mahPath = await getDatabasesPath();
     WidgetsFlutterBinding.ensureInitialized();
-    var database = openDatabase(join(mahPath, 'p2p.db'),);
+    var database = openDatabase(
+      join(mahPath, 'p2p.db'),
+    );
     final db = await database;
-    final List<Map<String, dynamic>> maps = await db.rawQuery('select event_id, title, events.description as the_desc, camps.name as cname, location_string, start_time, end_time from camps, events where camps.uid = events.hosted_by_camp and start_time >= ? and end_time <= ?', [start, end]);
+    final List<Map<String, dynamic>> maps = await db.rawQuery(
+        'select event_id, title, events.description as the_desc, camps.name as cname, location_string, start_time, end_time from camps, events where camps.uid = events.hosted_by_camp and start_time >= ? and end_time <= ? ORDER BY start_time',
+        [start, end]);
     setState(() {
       events.clear();
-      for(var e in maps){
+      for (var e in maps) {
         // flutter is picky about bad data now - don't trust org feed
         var id = int.parse(e['event_id'].toString());
         var title = e['title'];
         var desc = e['the_desc'];
         var camp = e['cname'];
         var campLocation = e['location_string'];
-        var start = e['start_time'];
+        var start = e['start_time'].toString();
+        if (start.length > 14) {
+          start = start.substring(11, 16);
+        }
         var end = e['end_time'];
-        if(camp == null || campLocation == null){ continue;}
-        events.add(EventObject(
-            id,
-            title,
-            desc,
-            camp,
-            campLocation,
-        start, end));
+        if (end.length > 14) {
+          end = end.substring(11, 16);
+        }
+        if (camp == null || campLocation == null) {
+          continue;
+        }
+        events
+            .add(EventObject(id, title, desc, camp, campLocation, start, end));
       }
       eventDataSource = EventsDataSource(eventData: events);
+      eventDataSource.sortedColumns.add(const SortColumnDetails(
+          name: 'start', sortDirection: DataGridSortDirection.ascending));
+      eventDataSource.sort();
     });
-
   }
 
   @override
@@ -95,7 +194,6 @@ class _EventsPageState extends State<EventsPage> {
       EventObject(10010, 'Placeholder', 'Developer', "", "", "", "15000")
     ];
   }
-
 
   Widget bottomWidget(double screenWidth) {
     return Container(
@@ -115,75 +213,122 @@ class _EventsPageState extends State<EventsPage> {
     );
   }
 
-
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        // Here we take the value from the EventsPage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: const Text("Events"),
-      ),
-      body: Stack(
-        children: <Widget>[
-          Center(
-            child: Column( children: [
-              Container(color: Colors.white70, height: 400, width: MediaQuery. of(context). size. width, child: Column(children: [
-                 const Text("Events page"),
-                SfDataGrid(
-                  source: eventDataSource,
-                  columnWidthMode: ColumnWidthMode.fill,
-                  columns: <GridColumn>[
-                    GridColumn(
-                        columnName: 'id',
-                        label: Container(
-                            padding: const EdgeInsets.all(16.0),
-                            alignment: Alignment.center,
-                            child: const Text(
-                              'ID',
-                            ))),
-                    GridColumn(
-                        columnName: 'name',
-                        label: Container(
-                            padding: const EdgeInsets.all(8.0),
-                            alignment: Alignment.center,
-                            child: const Text('Name'))),
-                    GridColumn(
-                        columnName: 'designation',
-                        label: Container(
-                            padding: const EdgeInsets.all(8.0),
-                            alignment: Alignment.center,
-                            child: const Text(
-                              'Designation',
-                              overflow: TextOverflow.ellipsis,
-                            ))),
-                    GridColumn(
-                        columnName: 'salary',
-                        label: Container(
-                            padding: const EdgeInsets.all(8.0),
-                            alignment: Alignment.center,
-                            child: const Text('Salary'))),
-                  ],
-                ),
-              ],)),
-
-            ],
-     )
-          )
-        ],
-      )
-    );
+        appBar: AppBar(
+          // Here we take the value from the EventsPage object that was created by
+          // the App.build method, and use it to set our appbar title.
+          title: const Text("Events"),
+        ),
+        body: Stack(
+          children: <Widget>[
+            Center(
+                child: Column(
+              children: [
+                Container(
+                    color: Colors.white70,
+                    height: 400,
+                    width: MediaQuery.of(context).size.width,
+                    child: Column(
+                      children: [
+                        DropdownButtonHideUnderline(
+                          child: DropdownButton2(
+                            hint: Text(
+                              'Change filter from "now"',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Theme.of(context).hintColor,
+                              ),
+                            ),
+                            items: items
+                                .map((item) => DropdownMenuItem<String>(
+                                      value: item,
+                                      child: Text(
+                                        item,
+                                        style: const TextStyle(
+                                          fontSize: 14,
+                                        ),
+                                      ),
+                                    ))
+                                .toList(),
+                            value: selectedValue,
+                            onChanged: (value) {
+                              setState(() {
+                                selectedValue = value as String;
+                                fetchEvents();
+                              });
+                            },
+                            buttonHeight: 40,
+                            buttonWidth: 140,
+                            itemHeight: 40,
+                          ),
+                        ),
+                        SfDataGrid(
+                          source: eventDataSource,
+                          columnWidthMode: ColumnWidthMode.fill,
+                          allowSorting: true,
+                          columns: <GridColumn>[
+                            GridColumn(
+                                columnName: 'start',
+                                label: Container(
+                                    padding: const EdgeInsets.all(16.0),
+                                    alignment: Alignment.center,
+                                    child: const Text(
+                                      'Start/PST',
+                                    ))),
+                            GridColumn(
+                                columnName: 'end',
+                                label: Container(
+                                    padding: const EdgeInsets.all(16.0),
+                                    alignment: Alignment.center,
+                                    child: const Text(
+                                      'End/PST',
+                                    ))),
+                            GridColumn(
+                                columnName: 'name',
+                                label: Container(
+                                    padding: const EdgeInsets.all(8.0),
+                                    alignment: Alignment.center,
+                                    child: const Text('Name'))),
+                            GridColumn(
+                                columnName: 'designation',
+                                label: Container(
+                                    padding: const EdgeInsets.all(8.0),
+                                    alignment: Alignment.center,
+                                    child: const Text(
+                                      '@',
+                                      overflow: TextOverflow.ellipsis,
+                                    ))),
+                            GridColumn(
+                                columnName: 'what',
+                                label: Container(
+                                    padding: const EdgeInsets.all(8.0),
+                                    alignment: Alignment.center,
+                                    child: const Text('What'))),
+                            GridColumn(
+                                columnName: 'location',
+                                label: Container(
+                                    padding: const EdgeInsets.all(8.0),
+                                    alignment: Alignment.center,
+                                    child: const Text('Camp'))),
+                          ],
+                        ),
+                      ],
+                    )),
+              ],
+            ))
+          ],
+        ));
   }
 }
 
-toLogin(){
-
-} // state
-
+toLogin() {} // state
 
 class EventObject {
-  EventObject(this.id, this.name, this.description, this.camp, this.campLocation, this.start, this.end);
+  EventObject(this.id, this.name, this.description, this.camp,
+      this.campLocation, this.start, this.end);
+
   final int id;
   final String name;
   final String description;
@@ -192,4 +337,3 @@ class EventObject {
   final String start;
   final String end;
 }
-
