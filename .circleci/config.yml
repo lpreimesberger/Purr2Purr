@@ -1,0 +1,23 @@
+version: 2.1
+orbs:
+  android: circleci/android@2.1.2
+jobs:
+  build:
+    docker:
+      - image: cirrusci/flutter:3.3.9
+    steps:
+      - checkout
+      - run: mkdir -p /home/lpreimesberger/
+      - run: set
+      - run: yes | /opt/android-sdk-linux/cmdline-tools/latest/bin/sdkmanager --licenses || true
+      - run: /opt/android-sdk-linux/cmdline-tools/latest/bin/sdkmanager "ndk-bundle"
+      - run: sudo apt-get update
+      - run: sudo apt-get install ccrypt      
+      - run: echo $KEYSTORE | base64 -d > /home/lpreimesberger/upload-keystore.jks
+      - run: flutter doctor
+      - run: sed -i "s/7777/$CIRCLE_BUILD_NUM/g" pubspec.yaml
+      - run: sed -i "s/9999/$CIRCLE_BUILD_NUM/g" lib/constants.dart
+      - run: head pubspec.yaml
+      - run: flutter build appbundle
+      - store_artifacts:
+          path: build/app/outputs/bundle/release/app-release.aab

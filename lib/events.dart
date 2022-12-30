@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:loading_indicator/loading_indicator.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
@@ -54,6 +55,7 @@ class EventsPage extends StatefulWidget {
 class _EventsPageState extends State<EventsPage> {
   List<EventObject> events = <EventObject>[];
   late EventsDataSource eventDataSource;
+  var busy = false;
   final gateOpen = DateTime(2022, 08, 29, 0, 0);
   final List<String> items = [
     'Gate Open',
@@ -152,6 +154,7 @@ class _EventsPageState extends State<EventsPage> {
         'select event_id, title, events.description as the_desc, camps.name as cname, location_string, start_time, end_time from camps, events where camps.uid = events.hosted_by_camp and start_time >= ? and end_time <= ? ORDER BY start_time',
         [start, end]);
     setState(() {
+      busy = true;
       events.clear();
       for (var e in maps) {
         // flutter is picky about bad data now - don't trust org feed
@@ -178,6 +181,7 @@ class _EventsPageState extends State<EventsPage> {
       eventDataSource.sortedColumns.add(const SortColumnDetails(
           name: 'start', sortDirection: DataGridSortDirection.ascending));
       eventDataSource.sort();
+      busy = false;
     });
   }
 
@@ -217,11 +221,16 @@ class _EventsPageState extends State<EventsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
-          // Here we take the value from the EventsPage object that was created by
-          // the App.build method, and use it to set our appbar title.
+          automaticallyImplyLeading: false,
           title: const Text("Events"),
         ),
-        body: Stack(
+        body: busy ? const LoadingIndicator(
+            indicatorType: Indicator.ballPulse, /// Required, The loading type of the widget
+            colors: const [Colors.white],       /// Optional, The color collections
+            strokeWidth: 2,                     /// Optional, The stroke of the line, only applicable to widget which contains line
+            backgroundColor: Colors.black,      /// Optional, Background of the widget
+            pathBackgroundColor: Colors.black   /// Optional, the stroke backgroundColor
+        ) : Stack(
           children: <Widget>[
             Center(
                 child: Column(
