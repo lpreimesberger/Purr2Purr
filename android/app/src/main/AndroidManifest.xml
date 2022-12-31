@@ -1,5 +1,5 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.example.purr2purr">
+    package="com.capricallctx.purr2purr">
    <application
         android:label="purr2purr"
         android:name="${applicationName}"

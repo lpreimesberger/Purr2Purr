@@ -1,4 +1,4 @@
-package com.example.purr2purr
+package com.capricallctx.purr2purr
 
 import io.flutter.embedding.android.FlutterActivity
 
