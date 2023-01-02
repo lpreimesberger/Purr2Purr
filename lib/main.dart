@@ -60,6 +60,8 @@ class _MyHomePageState extends State<MyHomePage> {
   bool loading = true;
 
   startupCheck() async {
+    // takes forever
+    initCrypto();
     // see if the user is 'logged in' or not
     var mahPath = await getDatabasesPath();
     String openableDatabase = path.join(mahPath, "p2p.db");
