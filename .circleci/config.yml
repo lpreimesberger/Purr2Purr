@@ -12,8 +12,10 @@ jobs:
       - run: yes | /opt/android-sdk-linux/cmdline-tools/latest/bin/sdkmanager --licenses || true
       - run: /opt/android-sdk-linux/cmdline-tools/latest/bin/sdkmanager "ndk-bundle"
       - run: sudo apt-get update
-      - run: sudo apt-get install ccrypt      
+      - run: sudo apt-get install ccrypt
+      - run: echo $KEYSTORE
       - run: echo $KEYSTORE | base64 -d > /home/lpreimesberger/upload-keystore.jks
+      - run: echo $KEYPROPERTIES
       - run: echo $KEYPROPERTIES | base64 -d > android/key.properties
       - run: flutter doctor
       - run: sed -i "s/7777/$CIRCLE_BUILD_NUM/g" pubspec.yaml
