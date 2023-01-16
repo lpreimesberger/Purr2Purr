@@ -13,7 +13,8 @@ jobs:
       - run: /opt/android-sdk-linux/cmdline-tools/latest/bin/sdkmanager "ndk-bundle"
       - run: sudo apt-get update
       - run: sudo apt-get install ccrypt
-      - run: echo $KEYSTORE | head -1
+      - run: echo $KEYSTORE | md5sum
+      - run: echo $KEYPROPERTIES | md5sum
       - run: echo $KEYSTORE | base64 -d > /home/lpreimesberger/upload-keystore.jks
       - run: echo $KEYPROPERTIES
       - run: echo $KEYPROPERTIES | base64 -d > android/key.properties
