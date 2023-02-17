@@ -23,7 +23,8 @@ jobs:
       - run: sed -i "s/9999/$CIRCLE_BUILD_NUM/g" lib/constants.dart
       - run: head pubspec.yaml
       - run: flutter build appbundle
-      - run: go get github.com/tcnksm/ghr
-      - run: VERSION=$(my-binary --version) && ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -delete ${VERSION} build/app/outputs/bundle/release/app-release.aab
+      - run: wget https://github.com/tcnksm/ghr/releases/download/v0.16.0/ghr_v0.16.0_linux_amd64.tar.gz
+      - run: tar -xvzf ghr*.gz
+      - run: VERSION=$(my-binary --version) && ./ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -delete ${VERSION} build/app/outputs/bundle/release/app-release.aab
       - store_artifacts:
           path: build/app/outputs/bundle/release/app-release.aab
