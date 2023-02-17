@@ -9,17 +9,25 @@ import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:intl/intl.dart';
 
 class EventsDataSource extends DataGridSource {
+
+  String org2Human(DateTime? thisDate){
+    if(thisDate == null){
+      return 'Unknown';
+    }
+    return DateFormat('EEEE H:mm').format(thisDate);
+  }
+
   /// Creates the employee data source class with required details.
   EventsDataSource({required List<EventObject> eventData}) {
     _eventData = eventData
         .map<DataGridRow>((e) => DataGridRow(cells: [
-              DataGridCell<String>(columnName: 'start', value: e.start),
-              DataGridCell<String>(columnName: 'end', value: e.end),
+              DataGridCell<String>(columnName: 'start', value: org2Human(DateTime.tryParse(e.start.replaceFirst("-07:00", "")))),
+              DataGridCell<String>(columnName: 'end', value: org2Human(DateTime.tryParse(e.end.replaceFirst("-07:00", "")))),
               DataGridCell<String>(columnName: 'name', value: e.name),
               DataGridCell<String>(
                   columnName: 'location', value: e.campLocation),
-              DataGridCell<String>(
-                  columnName: 'designation', value: e.description),
+//              DataGridCell<String>(
+//                  columnName: 'designation', value: e.description),
               DataGridCell<String>(columnName: 'what', value: e.camp),
             ]))
         .toList();
@@ -75,7 +83,7 @@ class _EventsPageState extends State<EventsPage> {
   playaPrint(DateTime d) {
     // org uses ISO but PST for reasons - 2022-09-02T15:00:00-07:00
     // d is GMT - fix is
-    d = d.subtract(Duration(hours: 7));
+    d = d.subtract(const Duration(hours: 7));
     var f = NumberFormat("00", "en_US");
     var year = d.year;
     var day = f.format(d.day);
@@ -100,7 +108,7 @@ class _EventsPageState extends State<EventsPage> {
         start = playaPrint(DateTime.now());
       }
       var temp = DateTime.parse(start);
-      var endWindow = temp.add(Duration(hours: 3));
+      var endWindow = temp.add(const Duration(hours: 3));
       end = playaPrint(endWindow);
     } else {
       switch (selectedValue) {
@@ -164,13 +172,13 @@ class _EventsPageState extends State<EventsPage> {
         var camp = e['cname'];
         var campLocation = e['location_string'];
         var start = e['start_time'].toString();
-        if (start.length > 14) {
-          start = start.substring(11, 16);
-        }
-        var end = e['end_time'];
-        if (end.length > 14) {
-          end = end.substring(11, 16);
-        }
+        //if (start.length > 14) {
+//          start = start.substring(11, 16);
+  //      }
+//        var end = e['end_time'];
+//        if (end.length > 14) {
+//          end = end.substring(11, 16);
+//        }
         if (camp == null || campLocation == null) {
           continue;
         }
@@ -224,23 +232,85 @@ class _EventsPageState extends State<EventsPage> {
           automaticallyImplyLeading: false,
           title: const Text("Events"),
         ),
+        backgroundColor: Colors.black38,
         body: busy ? const LoadingIndicator(
             indicatorType: Indicator.ballPulse, /// Required, The loading type of the widget
-            colors: const [Colors.white],       /// Optional, The color collections
+            colors: [Colors.white],       /// Optional, The color collections
             strokeWidth: 2,                     /// Optional, The stroke of the line, only applicable to widget which contains line
             backgroundColor: Colors.black,      /// Optional, Background of the widget
-            pathBackgroundColor: Colors.black   /// Optional, the stroke backgroundColor
+            pathBackgroundColor: Colors.black,   /// Optional, the stroke backgroundColor
+
         ) : Stack(
           children: <Widget>[
             Center(
                 child: Column(
+
               children: [
                 Container(
-                    color: Colors.white70,
-                    height: 400,
+                    color: Colors.black,
+                    height: MediaQuery.of(context).size.height*.9,
                     width: MediaQuery.of(context).size.width,
                     child: Column(
                       children: [
+    Container(
+    color: Colors.black38,
+    height: MediaQuery.of(context).size.height*.80,
+    width: MediaQuery.of(context).size.width,
+    child:                SfDataGrid(
+      source: eventDataSource,
+      allowSorting: true,
+      allowFiltering: true,
+      shrinkWrapRows: true, // grow to row# (misnamed)
+      columnWidthMode: ColumnWidthMode.fill,
+
+      columns: <GridColumn>[
+        GridColumn(
+            columnName: 'start',
+            label: Container(
+                padding: const EdgeInsets.all(16.0),
+                alignment: Alignment.center,
+                child: const Text(
+                  'Start/PST',
+                ))),
+        GridColumn(
+            columnName: 'end',
+            label: Container(
+                padding: const EdgeInsets.all(16.0),
+                alignment: Alignment.center,
+                child: const Text(
+                  'End/PST',
+                ))),
+        GridColumn(
+            columnName: 'name',
+            label: Container(
+                padding: const EdgeInsets.all(8.0),
+                alignment: Alignment.center,
+                child: const Text('Name'))),
+/*        GridColumn(
+            columnName: 'designation',
+            label: Container(
+                padding: const EdgeInsets.all(8.0),
+                alignment: Alignment.center,
+                child: const Text(
+                  '@',
+                  overflow: TextOverflow.ellipsis,
+                ))),
+*/
+        GridColumn(
+            columnName: 'what',
+            label: Container(
+                padding: const EdgeInsets.all(8.0),
+                alignment: Alignment.center,
+                child: const Text('What'))),
+        GridColumn(
+            columnName: 'location',
+            label: Container(
+                padding: const EdgeInsets.all(8.0),
+                alignment: Alignment.center,
+                child: const Text('Camp'))),
+      ],
+    ),
+    ),
                         DropdownButtonHideUnderline(
                           child: DropdownButton2(
                             hint: Text(
@@ -252,14 +322,15 @@ class _EventsPageState extends State<EventsPage> {
                             ),
                             items: items
                                 .map((item) => DropdownMenuItem<String>(
-                                      value: item,
-                                      child: Text(
-                                        item,
-                                        style: const TextStyle(
-                                          fontSize: 14,
-                                        ),
-                                      ),
-                                    ))
+                              value: item,
+                              child: Text(
+                                item,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ))
                                 .toList(),
                             value: selectedValue,
                             onChanged: (value) {
@@ -268,63 +339,15 @@ class _EventsPageState extends State<EventsPage> {
                                 fetchEvents();
                               });
                             },
-                            buttonHeight: 40,
-                            buttonWidth: 140,
-                            itemHeight: 40,
+                            buttonHeight: 20,
+                            buttonWidth: MediaQuery.of(context).size.width*.5,
+                            itemHeight: 20,
                           ),
                         ),
-                        SfDataGrid(
-                          source: eventDataSource,
-                          columnWidthMode: ColumnWidthMode.fill,
-                          allowSorting: true,
-                          columns: <GridColumn>[
-                            GridColumn(
-                                columnName: 'start',
-                                label: Container(
-                                    padding: const EdgeInsets.all(16.0),
-                                    alignment: Alignment.center,
-                                    child: const Text(
-                                      'Start/PST',
-                                    ))),
-                            GridColumn(
-                                columnName: 'end',
-                                label: Container(
-                                    padding: const EdgeInsets.all(16.0),
-                                    alignment: Alignment.center,
-                                    child: const Text(
-                                      'End/PST',
-                                    ))),
-                            GridColumn(
-                                columnName: 'name',
-                                label: Container(
-                                    padding: const EdgeInsets.all(8.0),
-                                    alignment: Alignment.center,
-                                    child: const Text('Name'))),
-                            GridColumn(
-                                columnName: 'designation',
-                                label: Container(
-                                    padding: const EdgeInsets.all(8.0),
-                                    alignment: Alignment.center,
-                                    child: const Text(
-                                      '@',
-                                      overflow: TextOverflow.ellipsis,
-                                    ))),
-                            GridColumn(
-                                columnName: 'what',
-                                label: Container(
-                                    padding: const EdgeInsets.all(8.0),
-                                    alignment: Alignment.center,
-                                    child: const Text('What'))),
-                            GridColumn(
-                                columnName: 'location',
-                                label: Container(
-                                    padding: const EdgeInsets.all(8.0),
-                                    alignment: Alignment.center,
-                                    child: const Text('Camp'))),
-                          ],
-                        ),
+
                       ],
                     )),
+
               ],
             ))
           ],
