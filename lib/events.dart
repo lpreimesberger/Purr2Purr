@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:loading_indicator/loading_indicator.dart';
+import 'package:purr2purr/event.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
@@ -8,24 +9,20 @@ import 'dart:developer' as trace;
 import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:intl/intl.dart';
 
+import 'common.dart';
+
 class EventsDataSource extends DataGridSource {
 
-  String org2Human(DateTime? thisDate){
-    if(thisDate == null){
-      return 'Unknown';
-    }
-    return DateFormat('EEEE H:mm').format(thisDate);
-  }
 
   /// Creates the employee data source class with required details.
   EventsDataSource({required List<EventObject> eventData}) {
     _eventData = eventData
         .map<DataGridRow>((e) => DataGridRow(cells: [
               DataGridCell<String>(columnName: 'start', value: org2Human(DateTime.tryParse(e.start.replaceFirst("-07:00", "")))),
-              DataGridCell<String>(columnName: 'end', value: org2Human(DateTime.tryParse(e.end.replaceFirst("-07:00", "")))),
+              DataGridCell<String>(columnName: 'end', value: org2HumanShort(DateTime.tryParse(e.end.replaceFirst("-07:00", "")))),
+      DataGridCell<String>(
+          columnName: 'location', value: shortLocation(e.campLocation)),
               DataGridCell<String>(columnName: 'name', value: e.name),
-              DataGridCell<String>(
-                  columnName: 'location', value: e.campLocation),
 //              DataGridCell<String>(
 //                  columnName: 'designation', value: e.description),
               DataGridCell<String>(columnName: 'what', value: e.camp),
@@ -43,9 +40,9 @@ class EventsDataSource extends DataGridSource {
     return DataGridRowAdapter(
         cells: row.getCells().map<Widget>((e) {
       return Container(
-        alignment: Alignment.center,
+        alignment: Alignment.topLeft,
         padding: const EdgeInsets.all(8.0),
-        child: Text(e.value.toString()),
+        child: Text(e.value.toString(), overflow: TextOverflow.ellipsis, style: const TextStyle(fontFamily: "SpaceMono"),),
       );
     }).toList());
   }
@@ -63,7 +60,7 @@ class EventsPage extends StatefulWidget {
 class _EventsPageState extends State<EventsPage> {
   List<EventObject> events = <EventObject>[];
   late EventsDataSource eventDataSource;
-  var busy = false;
+  var busy = true;
   final gateOpen = DateTime(2022, 08, 29, 0, 0);
   final List<String> items = [
     'Gate Open',
@@ -227,10 +224,12 @@ class _EventsPageState extends State<EventsPage> {
 
   @override
   Widget build(BuildContext context) {
+    const skinnyColumn = 100.0;
+    double fatColumn = MediaQuery.of(context).size.width - skinnyColumn;
     return Scaffold(
         appBar: AppBar(
           automaticallyImplyLeading: false,
-          title: const Text("Events"),
+          title: Text("Events @ ${kDebugMode ? "(Pretending to be gate open)" : DateTime.now().toString()}"),
         ),
         backgroundColor: Colors.black38,
         body: busy ? const LoadingIndicator(
@@ -261,19 +260,28 @@ class _EventsPageState extends State<EventsPage> {
       allowSorting: true,
       allowFiltering: true,
       shrinkWrapRows: true, // grow to row# (misnamed)
-      columnWidthMode: ColumnWidthMode.fill,
-
+      columnWidthMode: ColumnWidthMode.auto,
+      onCellTap: (details) {
+        if (details.rowColumnIndex.rowIndex != 0) {
+          final record = events[details.rowColumnIndex.rowIndex - 1];
+          Navigator.of(context).push(MaterialPageRoute(
+              builder: (context) => EventDetailPage(record)));
+        }
+      },
       columns: <GridColumn>[
         GridColumn(
             columnName: 'start',
             label: Container(
                 padding: const EdgeInsets.all(16.0),
-                alignment: Alignment.center,
+                width: skinnyColumn,
+                alignment: Alignment.topLeft,
                 child: const Text(
-                  'Start/PST',
+                  '@PST',
                 ))),
         GridColumn(
             columnName: 'end',
+            visible: false,
+            width: skinnyColumn,
             label: Container(
                 padding: const EdgeInsets.all(16.0),
                 alignment: Alignment.center,
@@ -281,11 +289,20 @@ class _EventsPageState extends State<EventsPage> {
                   'End/PST',
                 ))),
         GridColumn(
-            columnName: 'name',
+            columnName: 'what',
+            width: skinnyColumn,
             label: Container(
                 padding: const EdgeInsets.all(8.0),
-                alignment: Alignment.center,
-                child: const Text('Name'))),
+                width: skinnyColumn,
+                alignment: Alignment.topLeft,
+                child: const Text('@'))),
+        GridColumn(
+            columnName: 'name',
+            label: Container(
+                width: 500,
+                padding: const EdgeInsets.all(8.0),
+                alignment: Alignment.topLeft,
+                child: const Text('Event Name'))),
 /*        GridColumn(
             columnName: 'designation',
             label: Container(
@@ -297,13 +314,8 @@ class _EventsPageState extends State<EventsPage> {
                 ))),
 */
         GridColumn(
-            columnName: 'what',
-            label: Container(
-                padding: const EdgeInsets.all(8.0),
-                alignment: Alignment.center,
-                child: const Text('What'))),
-        GridColumn(
             columnName: 'location',
+            visible: false,
             label: Container(
                 padding: const EdgeInsets.all(8.0),
                 alignment: Alignment.center,
