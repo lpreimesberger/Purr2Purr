@@ -25,7 +25,7 @@ class EventDetailPageState extends State<EventDetailPage> {
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
             ListTile(
-              leading: Icon(Icons.album),
+              leading: const Icon(Icons.album),
               title: Text(record.name),
               subtitle: Text(record.campLocation),
 
@@ -34,20 +34,19 @@ class EventDetailPageState extends State<EventDetailPage> {
 
               mainAxisAlignment: MainAxisAlignment.end,
               children: <Widget>[
-                Text("Starts: " + org2Human(DateTime.tryParse(record.start)), style: TextStyle(color: Colors.white),),
-                Text("Ends: " + org2Human(DateTime.tryParse(record.end)), style: TextStyle(color: Colors.white),),
-                Text(record.camp, style: TextStyle(color: Colors.white),),
+                Text("Starts: ${org2Human(DateTime.tryParse(record.start))}", style: const TextStyle(color: Colors.white),),
+                Text("Ends: ${org2Human(DateTime.tryParse(record.end))}", style: const TextStyle(color: Colors.white),),
+                Text(record.camp, style: const TextStyle(color: Colors.white),),
                 Padding(
-                  padding: EdgeInsets.all(15), //apply padding to all four sides
+                  padding: const EdgeInsets.all(15), //apply padding to all four sides
                   child: TextFormField(
                     readOnly: true,
-                    style: TextStyle(color: Colors.white),
+                    style: const TextStyle(color: Colors.white),
                     initialValue: record.description,
                     keyboardType: TextInputType.multiline,
                     maxLines: null,
                   ),
                 ),
-
                 TextButton(
                   child: const Text('Back'),
                   onPressed: () { Navigator.pop(context, true);},
@@ -57,14 +56,6 @@ class EventDetailPageState extends State<EventDetailPage> {
             ),
           ],
         ),
-      ),
-    );
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Event Details'),
-      ),
-      body: Center(
-        child: Text('Employee salary: ${this.record.id}'),
       ),
     );
   }
