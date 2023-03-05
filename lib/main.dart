@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:get_storage/get_storage.dart';
 import 'package:page_transition/page_transition.dart';
 import 'package:purr2purr/events.dart';
 import 'package:purr2purr/login.dart';
@@ -12,8 +13,8 @@ import 'package:loading_indicator/loading_indicator.dart';
 import 'package:sqflite/sqflite.dart';
 import 'dart:developer' as trace;
 
-void main() {
-
+void main() async {
+  await GetStorage.init();
   runApp(SharedValue.wrapApp(
     const MyApp(),
   ),);
@@ -92,6 +93,15 @@ class _MyHomePageState extends State<MyHomePage> {
     setState(() {
       loading = false;
     });
+    Navigator.push(context,
+        PageTransition(
+          alignment: Alignment.bottomCenter,
+          curve: Curves.easeInOut,
+          duration: const Duration(milliseconds: 600),
+          reverseDuration: const Duration(milliseconds: 600),
+          type: PageTransitionType.rightToLeftWithFade,
+          child: const EventsPage(title: '',),
+        ));
   }
 
   @override

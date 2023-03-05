@@ -8,8 +8,17 @@ import 'package:sqflite/sqflite.dart';
 import 'dart:developer' as trace;
 import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:intl/intl.dart';
+import 'package:add_2_calendar/add_2_calendar.dart';
 
 import 'common.dart';
+
+String chop( String thisString){
+  if(thisString.length > 20){
+    thisString = thisString.substring(0,19)  + "\n" + thisString.substring(20);
+  }
+  return thisString;
+}
+
 
 class EventsDataSource extends DataGridSource {
 
@@ -22,7 +31,7 @@ class EventsDataSource extends DataGridSource {
               DataGridCell<String>(columnName: 'end', value: org2HumanShort(DateTime.tryParse(e.end.replaceFirst("-07:00", "")))),
       DataGridCell<String>(
           columnName: 'location', value: shortLocation(e.campLocation)),
-              DataGridCell<String>(columnName: 'name', value: e.name),
+              DataGridCell<String>(columnName: 'name', value: e.name, ),
 //              DataGridCell<String>(
 //                  columnName: 'designation', value: e.description),
               DataGridCell<String>(columnName: 'what', value: e.camp),
@@ -42,7 +51,7 @@ class EventsDataSource extends DataGridSource {
       return Container(
         alignment: Alignment.topLeft,
         padding: const EdgeInsets.all(8.0),
-        child: Text(e.value.toString(), overflow: TextOverflow.ellipsis, style: const TextStyle(fontFamily: "SpaceMono"),),
+        child: Text(e.value.toString(), overflow: TextOverflow.visible, style: const TextStyle(fontFamily: "SpaceMono"),),
       );
     }).toList());
   }
@@ -93,14 +102,14 @@ class _EventsPageState extends State<EventsPage> {
   }
 
   fetchEvents() async {
-    var start = "2022-09-02T15:00:00-07:00";
-    var end = "2022-09-03T15:00:00-07:00";
+    var start = "2022-08-28T00:00:00-07:00";
+    var end = "2022-08-28T00:00:00-07:00";
     var window = DateTime.now();
     if (selectedValue == "Immediacy") {
       if (kDebugMode) {
         // pretend
         trace.log("setting time to default since we are debugging");
-        start = "2022-09-02T15:00:00-07:00";
+        start = "2022-08-29T15:00:00-07:00";
       } else {
         start = playaPrint(DateTime.now());
       }
@@ -155,6 +164,9 @@ class _EventsPageState extends State<EventsPage> {
       join(mahPath, 'p2p.db'),
     );
     final db = await database;
+    setState(() {
+      busy = true;
+    });
     final List<Map<String, dynamic>> maps = await db.rawQuery(
         'select event_id, title, events.description as the_desc, camps.name as cname, location_string, start_time, end_time from camps, events where camps.uid = events.hosted_by_camp and start_time >= ? and end_time <= ? ORDER BY start_time',
         [start, end]);
@@ -169,13 +181,6 @@ class _EventsPageState extends State<EventsPage> {
         var camp = e['cname'];
         var campLocation = e['location_string'];
         var start = e['start_time'].toString();
-        //if (start.length > 14) {
-//          start = start.substring(11, 16);
-  //      }
-//        var end = e['end_time'];
-//        if (end.length > 14) {
-//          end = end.substring(11, 16);
-//        }
         if (camp == null || campLocation == null) {
           continue;
         }
@@ -224,7 +229,7 @@ class _EventsPageState extends State<EventsPage> {
 
   @override
   Widget build(BuildContext context) {
-    const skinnyColumn = 100.0;
+    const skinnyColumn = 150.0;
     double fatColumn = MediaQuery.of(context).size.width - skinnyColumn;
     return Scaffold(
         appBar: AppBar(
@@ -263,7 +268,9 @@ class _EventsPageState extends State<EventsPage> {
       columnWidthMode: ColumnWidthMode.auto,
       onCellTap: (details) {
         if (details.rowColumnIndex.rowIndex != 0) {
-          final record = events[details.rowColumnIndex.rowIndex - 1];
+          // steps for debug
+          final lookup = details.rowColumnIndex.rowIndex - 1;
+          final record = events[lookup];
           Navigator.of(context).push(MaterialPageRoute(
               builder: (context) => EventDetailPage(record)));
         }
@@ -298,21 +305,12 @@ class _EventsPageState extends State<EventsPage> {
                 child: const Text('@'))),
         GridColumn(
             columnName: 'name',
+            columnWidthMode: ColumnWidthMode.lastColumnFill,
             label: Container(
                 width: 500,
                 padding: const EdgeInsets.all(8.0),
                 alignment: Alignment.topLeft,
-                child: const Text('Event Name'))),
-/*        GridColumn(
-            columnName: 'designation',
-            label: Container(
-                padding: const EdgeInsets.all(8.0),
-                alignment: Alignment.center,
-                child: const Text(
-                  '@',
-                  overflow: TextOverflow.ellipsis,
-                ))),
-*/
+                child: const Text('Event Name', overflow: TextOverflow.ellipsis,))),
         GridColumn(
             columnName: 'location',
             visible: false,
