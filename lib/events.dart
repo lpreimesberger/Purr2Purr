@@ -1,37 +1,41 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_cupertino_datetime_picker/flutter_cupertino_datetime_picker.dart';
 import 'package:loading_indicator/loading_indicator.dart';
 import 'package:purr2purr/event.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 import 'dart:developer' as trace;
-import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:intl/intl.dart';
-import 'package:add_2_calendar/add_2_calendar.dart';
-
 import 'common.dart';
 
-String chop( String thisString){
-  if(thisString.length > 20){
-    thisString = thisString.substring(0,19)  + "\n" + thisString.substring(20);
+String chop(String thisString) {
+  if (thisString.length > 20) {
+    thisString = thisString.substring(0, 19) + "\n" + thisString.substring(20);
   }
   return thisString;
 }
 
-
 class EventsDataSource extends DataGridSource {
-
-
   /// Creates the employee data source class with required details.
   EventsDataSource({required List<EventObject> eventData}) {
     _eventData = eventData
         .map<DataGridRow>((e) => DataGridRow(cells: [
-              DataGridCell<String>(columnName: 'start', value: org2Human(DateTime.tryParse(e.start.replaceFirst("-07:00", "")))),
-              DataGridCell<String>(columnName: 'end', value: org2HumanShort(DateTime.tryParse(e.end.replaceFirst("-07:00", "")))),
-      DataGridCell<String>(
-          columnName: 'location', value: shortLocation(e.campLocation)),
-              DataGridCell<String>(columnName: 'name', value: e.name, ),
+              DataGridCell<String>(
+                  columnName: 'start',
+                  value: org2Human(
+                      DateTime.tryParse(e.start.replaceFirst("-07:00", "")))),
+              DataGridCell<String>(
+                  columnName: 'end',
+                  value: org2HumanShort(
+                      DateTime.tryParse(e.end.replaceFirst("-07:00", "")))),
+              DataGridCell<String>(
+                  columnName: 'location', value: shortLocation(e.campLocation)),
+              DataGridCell<String>(
+                columnName: 'name',
+                value: e.name,
+              ),
 //              DataGridCell<String>(
 //                  columnName: 'designation', value: e.description),
               DataGridCell<String>(columnName: 'what', value: e.camp),
@@ -51,7 +55,11 @@ class EventsDataSource extends DataGridSource {
       return Container(
         alignment: Alignment.topLeft,
         padding: const EdgeInsets.all(8.0),
-        child: Text(e.value.toString(), overflow: TextOverflow.visible, style: const TextStyle(fontFamily: "SpaceMono"),),
+        child: Text(
+          e.value.toString(),
+          overflow: TextOverflow.visible,
+          style: const TextStyle(fontFamily: "SpaceMono"),
+        ),
       );
     }).toList());
   }
@@ -83,8 +91,47 @@ class _EventsPageState extends State<EventsPage> {
     'Teardown Monday',
     'Immediacy'
   ];
+  static const String MIN_DATETIME = '2022-08-28 00:00:00';
+  static const String MAX_DATETIME = '2022-09-05 23:00:00';
+  static const String INIT_DATETIME = '2022-09-01 23:00:00';
+  bool? _showTitle = true;
+  String _format = 'M-d  H:m:s';
+  TextEditingController _formatCtrl = TextEditingController();
+  DateTimePickerLocale? _locale = DateTimePickerLocale.en_us;
+  List<DateTimePickerLocale> _locales = DateTimePickerLocale.values;
+  late DateTime _dateTime;
 
   String? selectedValue = "Immediacy";
+
+  void _showDateTimePicker() {
+    DatePicker.showDatePicker(
+      this.context,
+      minDateTime: DateTime.parse(MIN_DATETIME),
+      maxDateTime: DateTime.parse(MAX_DATETIME),
+      initialDateTime: _dateTime,
+      dateFormat: _format,
+      locale: _locale!,
+      pickerTheme: DateTimePickerTheme(
+        showTitle: _showTitle!,
+      ),
+      pickerMode: DateTimePickerMode.datetime,
+      // show TimePicker
+      onCancel: () {
+        debugPrint('onCancel');
+      },
+      onChange: (dateTime, List<int> index) {
+        setState(() {
+          _dateTime = dateTime;
+          fetchEvents();
+        });
+      },
+      onConfirm: (dateTime, List<int> index) {
+        setState(() {
+          _dateTime = dateTime;
+        });
+      },
+    );
+  }
 
   playaPrint(DateTime d) {
     // org uses ISO but PST for reasons - 2022-09-02T15:00:00-07:00
@@ -102,61 +149,10 @@ class _EventsPageState extends State<EventsPage> {
   }
 
   fetchEvents() async {
-    var start = "2022-08-28T00:00:00-07:00";
-    var end = "2022-08-28T00:00:00-07:00";
-    var window = DateTime.now();
-    if (selectedValue == "Immediacy") {
-      if (kDebugMode) {
-        // pretend
-        trace.log("setting time to default since we are debugging");
-        start = "2022-08-29T15:00:00-07:00";
-      } else {
-        start = playaPrint(DateTime.now());
-      }
-      var temp = DateTime.parse(start);
-      var endWindow = temp.add(const Duration(hours: 3));
-      end = playaPrint(endWindow);
-    } else {
-      switch (selectedValue) {
-        case 'Gate Open':
-          window = gateOpen;
-          break;
-        case 'Monday':
-          window = gateOpen.add(const Duration(days: 1));
-          break;
-        case 'Tuesday':
-          window = gateOpen.add(const Duration(days: 2));
-          break;
-
-        case 'Wednesday':
-          window = gateOpen.add(const Duration(days: 3));
-          break;
-
-        case 'Thursday':
-          window = gateOpen.add(const Duration(days: 4));
-          break;
-
-        case 'Friday':
-          window = gateOpen.add(const Duration(days: 5));
-          break;
-
-        case 'Man Burn':
-          window = gateOpen.add(const Duration(days: 6));
-          break;
-
-        case 'Temple Burn':
-          window = gateOpen.add(const Duration(days: 7));
-          break;
-
-        case 'Teardown Monday':
-          window = gateOpen.add(const Duration(days: 8));
-          break;
-      }
-      var endWindow = window.add(const Duration(hours: 24));
-      start = playaPrint(window);
-      end = playaPrint(endWindow);
-
-    }
+    var start = _dateTime.toIso8601String();
+    var end = _dateTime.add(Duration(hours: 6)).toIso8601String();
+    //var start = "2022-08-28T00:00:00-07:00";
+    //var end = "2022-08-28T00:00:00-07:00";
 
     final mahPath = await getDatabasesPath();
     WidgetsFlutterBinding.ensureInitialized();
@@ -200,6 +196,8 @@ class _EventsPageState extends State<EventsPage> {
     super.initState();
     events = getPlaceHolderData();
     eventDataSource = EventsDataSource(eventData: events);
+    _formatCtrl.text = _format;
+    _dateTime = DateTime.parse(INIT_DATETIME);
     fetchEvents();
   }
 
@@ -209,159 +207,131 @@ class _EventsPageState extends State<EventsPage> {
     ];
   }
 
-  Widget bottomWidget(double screenWidth) {
-    return Container(
-      width: 1.5 * screenWidth,
-      height: 1.5 * screenWidth,
-      decoration: const BoxDecoration(
-        shape: BoxShape.circle,
-        gradient: LinearGradient(
-          begin: Alignment(0.6, -1.1),
-          end: Alignment(0.7, 0.8),
-          colors: [
-            Color(0xDB4BE8CC),
-            Color(0x005CDBCF),
-          ],
-        ),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     const skinnyColumn = 150.0;
-    double fatColumn = MediaQuery.of(context).size.width - skinnyColumn;
     return Scaffold(
         appBar: AppBar(
           automaticallyImplyLeading: false,
-          title: Text("Events @ ${kDebugMode ? "(Pretending to be gate open)" : DateTime.now().toString()}"),
+          title: Text("@" + _dateTime.toIso8601String()),
         ),
         backgroundColor: Colors.black38,
-        body: busy ? const LoadingIndicator(
-            indicatorType: Indicator.ballPulse, /// Required, The loading type of the widget
-            colors: [Colors.white],       /// Optional, The color collections
-            strokeWidth: 2,                     /// Optional, The stroke of the line, only applicable to widget which contains line
-            backgroundColor: Colors.black,      /// Optional, Background of the widget
-            pathBackgroundColor: Colors.black,   /// Optional, the stroke backgroundColor
+        floatingActionButton: FloatingActionButton(
+          child: new Icon(Icons.calendar_today_sharp),
+          onPressed: () {
+            _showDateTimePicker();
+            //Navigator.of(context).push(MaterialPageRoute(builder: (context) { return DateTimePickerBottomSheet(); }));
+          },
+        ),
+        body: busy
+            ? const LoadingIndicator(
+                indicatorType: Indicator.ballPulse,
 
-        ) : Stack(
-          children: <Widget>[
-            Center(
-                child: Column(
+                /// Required, The loading type of the widget
+                colors: [Colors.white],
 
-              children: [
-                Container(
-                    color: Colors.black,
-                    height: MediaQuery.of(context).size.height*.9,
-                    width: MediaQuery.of(context).size.width,
-                    child: Column(
-                      children: [
-    Container(
-    color: Colors.black38,
-    height: MediaQuery.of(context).size.height*.80,
-    width: MediaQuery.of(context).size.width,
-    child:                SfDataGrid(
-      source: eventDataSource,
-      allowSorting: true,
-      allowFiltering: true,
-      shrinkWrapRows: true, // grow to row# (misnamed)
-      columnWidthMode: ColumnWidthMode.auto,
-      onCellTap: (details) {
-        if (details.rowColumnIndex.rowIndex != 0) {
-          // steps for debug
-          final lookup = details.rowColumnIndex.rowIndex - 1;
-          final record = events[lookup];
-          Navigator.of(context).push(MaterialPageRoute(
-              builder: (context) => EventDetailPage(record)));
-        }
-      },
-      columns: <GridColumn>[
-        GridColumn(
-            columnName: 'start',
-            label: Container(
-                padding: const EdgeInsets.all(16.0),
-                width: skinnyColumn,
-                alignment: Alignment.topLeft,
-                child: const Text(
-                  '@PST',
-                ))),
-        GridColumn(
-            columnName: 'end',
-            visible: false,
-            width: skinnyColumn,
-            label: Container(
-                padding: const EdgeInsets.all(16.0),
-                alignment: Alignment.center,
-                child: const Text(
-                  'End/PST',
-                ))),
-        GridColumn(
-            columnName: 'what',
-            width: skinnyColumn,
-            label: Container(
-                padding: const EdgeInsets.all(8.0),
-                width: skinnyColumn,
-                alignment: Alignment.topLeft,
-                child: const Text('@'))),
-        GridColumn(
-            columnName: 'name',
-            columnWidthMode: ColumnWidthMode.lastColumnFill,
-            label: Container(
-                width: 500,
-                padding: const EdgeInsets.all(8.0),
-                alignment: Alignment.topLeft,
-                child: const Text('Event Name', overflow: TextOverflow.ellipsis,))),
-        GridColumn(
-            columnName: 'location',
-            visible: false,
-            label: Container(
-                padding: const EdgeInsets.all(8.0),
-                alignment: Alignment.center,
-                child: const Text('Camp'))),
-      ],
-    ),
-    ),
-                        DropdownButtonHideUnderline(
-                          child: DropdownButton2(
-                            hint: Text(
-                              'Change filter from "now"',
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: Theme.of(context).hintColor,
-                              ),
-                            ),
-                            items: items
-                                .map((item) => DropdownMenuItem<String>(
-                              value: item,
-                              child: Text(
-                                item,
-                                overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(
-                                  fontSize: 14,
+                /// Optional, The color collections
+                strokeWidth: 2,
+
+                /// Optional, The stroke of the line, only applicable to widget which contains line
+                backgroundColor: Colors.black,
+
+                /// Optional, Background of the widget
+                pathBackgroundColor: Colors.black,
+
+                /// Optional, the stroke backgroundColor
+              )
+            : Stack(
+                children: <Widget>[
+                  Center(
+                      child: Column(
+                    children: [
+                      Container(
+                          color: Colors.black,
+                          height: MediaQuery.of(context).size.height * .8,
+                          width: MediaQuery.of(context).size.width,
+                          child: Column(
+                            children: [
+                              Container(
+                                color: Colors.black38,
+                                height:
+                                    MediaQuery.of(context).size.height * .80,
+                                width: MediaQuery.of(context).size.width,
+                                child: SfDataGrid(
+                                  source: eventDataSource,
+                                  allowSorting: true,
+                                  allowFiltering: true,
+                                  shrinkWrapRows: true,
+                                  // grow to row# (misnamed)
+                                  columnWidthMode: ColumnWidthMode.auto,
+                                  onCellTap: (details) {
+                                    if (details.rowColumnIndex.rowIndex != 0) {
+                                      // steps for debug
+                                      final lookup =
+                                          details.rowColumnIndex.rowIndex - 1;
+                                      final record = events[lookup];
+                                      Navigator.of(context).push(
+                                          MaterialPageRoute(
+                                              builder: (context) =>
+                                                  EventDetailPage(record)));
+                                    }
+                                  },
+                                  columns: <GridColumn>[
+                                    GridColumn(
+                                        columnName: 'start',
+                                        label: Container(
+                                            padding: const EdgeInsets.all(16.0),
+                                            width: skinnyColumn,
+                                            alignment: Alignment.topLeft,
+                                            child: const Text(
+                                              '@PST',
+                                            ))),
+                                    GridColumn(
+                                        columnName: 'end',
+                                        visible: false,
+                                        width: skinnyColumn,
+                                        label: Container(
+                                            padding: const EdgeInsets.all(16.0),
+                                            alignment: Alignment.center,
+                                            child: const Text(
+                                              'End/PST',
+                                            ))),
+                                    GridColumn(
+                                        columnName: 'what',
+                                        width: skinnyColumn,
+                                        label: Container(
+                                            padding: const EdgeInsets.all(8.0),
+                                            width: skinnyColumn,
+                                            alignment: Alignment.topLeft,
+                                            child: const Text('@'))),
+                                    GridColumn(
+                                        columnName: 'name',
+                                        columnWidthMode:
+                                            ColumnWidthMode.lastColumnFill,
+                                        label: Container(
+                                            width: 500,
+                                            padding: const EdgeInsets.all(8.0),
+                                            alignment: Alignment.topLeft,
+                                            child: const Text(
+                                              'Event Name',
+                                              overflow: TextOverflow.ellipsis,
+                                            ))),
+                                    GridColumn(
+                                        columnName: 'location',
+                                        visible: false,
+                                        label: Container(
+                                            padding: const EdgeInsets.all(8.0),
+                                            alignment: Alignment.center,
+                                            child: const Text('Camp'))),
+                                  ],
                                 ),
                               ),
-                            ))
-                                .toList(),
-                            value: selectedValue,
-                            onChanged: (value) {
-                              setState(() {
-                                selectedValue = value as String;
-                                fetchEvents();
-                              });
-                            },
-                            buttonHeight: 20,
-                            buttonWidth: MediaQuery.of(context).size.width*.5,
-                            itemHeight: 20,
-                          ),
-                        ),
-
-                      ],
-                    )),
-
-              ],
-            ))
-          ],
-        ));
+                            ],
+                          )),
+                    ],
+                  ))
+                ],
+              ));
   }
 }
 
