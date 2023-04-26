@@ -2,7 +2,9 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_cupertino_datetime_picker/flutter_cupertino_datetime_picker.dart';
 import 'package:loading_indicator/loading_indicator.dart';
+import 'package:purr2purr/about.dart';
 import 'package:purr2purr/event.dart';
+import 'package:purr2purr/scavenge.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
@@ -212,8 +214,35 @@ class _EventsPageState extends State<EventsPage> {
     const skinnyColumn = 150.0;
     return Scaffold(
         appBar: AppBar(
-          automaticallyImplyLeading: false,
+          automaticallyImplyLeading: true,
           title: Text("@" + _dateTime.toIso8601String()),
+        ),
+        drawer: Drawer(
+            child: ListView(
+              padding: EdgeInsets.zero,
+              children: [
+                const DrawerHeader(
+                  decoration: BoxDecoration(
+                    color: Colors.blue,
+                  ),
+                  child: Text('Event Finder'),
+                ),
+                ListTile(
+                  title: const Text('Scavenge'),
+                  onTap: () {
+                    Navigator.push(context, MaterialPageRoute(builder: (context) => ScavengePage(title: "Search")),);
+                    // ...
+                  },
+                ),
+                ListTile(
+                  title: const Text('About'),
+                  onTap: () {
+                    Navigator.push(context, MaterialPageRoute(builder: (context) => AboutScreen()),
+                    );
+                  },
+                ),
+              ],
+            )
         ),
         backgroundColor: Colors.black38,
         floatingActionButton: FloatingActionButton(

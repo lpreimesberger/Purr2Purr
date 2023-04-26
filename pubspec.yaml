@@ -38,6 +38,7 @@ dependencies:
   pointycastle: ^3.6.2
   add_2_calendar: ^2.1.2
   get_storage: any
+  nfc_manager: ^3.2.0
 
 
 flutter_icons:
