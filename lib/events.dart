@@ -12,6 +12,7 @@ import 'dart:developer' as trace;
 import 'package:intl/intl.dart';
 import 'common.dart';
 
+
 String chop(String thisString) {
   if (thisString.length > 20) {
     thisString = thisString.substring(0, 19) + "\n" + thisString.substring(20);
@@ -193,6 +194,8 @@ class _EventsPageState extends State<EventsPage> {
     });
   }
 
+
+
   @override
   void initState() {
     super.initState();
@@ -201,6 +204,7 @@ class _EventsPageState extends State<EventsPage> {
     _formatCtrl.text = _format;
     _dateTime = DateTime.parse(INIT_DATETIME);
     fetchEvents();
+
   }
 
   List<EventObject> getPlaceHolderData() {

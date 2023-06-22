@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:page_transition/page_transition.dart';
+import 'package:purr2purr/boot.dart';
 import 'package:purr2purr/events.dart';
 import 'package:purr2purr/login.dart';
 import 'package:purr2purr/state.dart';
@@ -100,7 +101,7 @@ class _MyHomePageState extends State<MyHomePage> {
           duration: const Duration(milliseconds: 600),
           reverseDuration: const Duration(milliseconds: 600),
           type: PageTransitionType.rightToLeftWithFade,
-          child: const EventsPage(title: '',),
+          child: const BootPage(title: '',),
         ));
   }
 
