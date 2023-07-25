@@ -28,7 +28,7 @@ class _BootPageState extends State<BootPage> {
     return Container(
       width: 1.5 * screenWidth,
       height: 1.5 * screenWidth,
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         shape: BoxShape.circle,
         gradient: LinearGradient(
           begin: Alignment(0.6, -1.1),
@@ -46,17 +46,17 @@ class _BootPageState extends State<BootPage> {
 
   @override
   Widget build(BuildContext context) {
-    const st = TextStyle(color: Colors.white, fontSize: 20, overflow: TextOverflow.visible, );
+    var st = TextStyle(color: Colors.white, fontSize: 20, overflow: TextOverflow.visible, );
     return Scaffold(
       appBar: AppBar(
         // Here we take the value from the LoginPage object that was created by
         // the App.build method, and use it to set our appbar title.
-        title: const Text("Woot 2023!"),
+        title: Text("Woot 2023!"),
       ),
       body: Stack(
         children: <Widget>[
           Container(
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               image: DecorationImage(image: AssetImage("assets/dust.png"), fit: BoxFit.cover,),
             ),
           ),
