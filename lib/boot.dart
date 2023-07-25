@@ -63,25 +63,13 @@ class _BootPageState extends State<BootPage> {
           Center(
 
             child: Column( children: [
-              Container(color: Colors.black, height: 400, width: 400, margin: EdgeInsets.all(20.0), child: Column( children: [
-                 const Text(style: st,"Greetings Burner!"),
-                 const Text(style: st,"Per da rulez - we cannot break embargo on 2023 events until gate open."),
-                 const Text(style: st,"The app will unlock WHEN THE GATE OPENS."),
-                 const Text(style: st,"For now - here are some 2022 events to keep you entertained.  :)"),
-                OutlinedButton(
-                  onPressed: (){
-                    Navigator.push(context,
-                        PageTransition(
-                          alignment: Alignment.bottomCenter,
-                          curve: Curves.easeInOut,
-                          duration: const Duration(milliseconds: 600),
-                          reverseDuration: const Duration(milliseconds: 600),
-                          type: PageTransitionType.rightToLeftWithFade,
-                          child: const EventsPage(title: '',),
-                        ));
-                  },
-                  child: const Text(style: TextStyle(color: Colors.black, backgroundColor: Colors.green, fontSize: 20, overflow: TextOverflow.visible, ), '2022 Events'),
+              Container(color: Colors.black, height: 400, width: 400, margin: const EdgeInsets.all(50.0), child: const Column( children: [
+                 Text(style: st,"Greetings Burner!"),
+                Align(
+                  alignment: Alignment.center, // Align however you like (i.e .centerRight, centerLeft)
+                  child: Text(style: st, "Per da rulez - we cannot break embargo on 2023 events until gate open.  The app will unlock WHEN THE GATE OPENS."),
                 ),
+
 
               ],)),
 

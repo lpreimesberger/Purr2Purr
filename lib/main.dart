@@ -66,6 +66,8 @@ class _MyHomePageState extends State<MyHomePage> {
     initCrypto();
     // see if the user is 'logged in' or not
     var mahPath = await getDatabasesPath();
+    var gateOpen = DateTime(2023, 8, 27, 0, 0);
+    var rn = DateTime.now();
     String openableDatabase = path.join(mahPath, "p2p.db");
     trace.log("opening sqlite db @ $mahPath");
     trace.log("opening sqlite db @ $openableDatabase");
@@ -94,15 +96,32 @@ class _MyHomePageState extends State<MyHomePage> {
     setState(() {
       loading = false;
     });
-    Navigator.push(context,
-        PageTransition(
-          alignment: Alignment.bottomCenter,
-          curve: Curves.easeInOut,
-          duration: const Duration(milliseconds: 600),
-          reverseDuration: const Duration(milliseconds: 600),
-          type: PageTransitionType.rightToLeftWithFade,
-          child: const BootPage(title: '',),
-        ));
+    if(rn.isAfter(gateOpen)){
+      if (context.mounted) {
+        Navigator.push(context,
+            PageTransition(
+              alignment: Alignment.bottomCenter,
+              curve: Curves.easeInOut,
+              duration: const Duration(milliseconds: 600),
+              reverseDuration: const Duration(milliseconds: 600),
+              type: PageTransitionType.rightToLeftWithFade,
+              child: const EventsPage(title: '',),
+            ));
+      }
+
+    } else {
+      if (context.mounted) {
+        Navigator.push(context,
+            PageTransition(
+              alignment: Alignment.bottomCenter,
+              curve: Curves.easeInOut,
+              duration: const Duration(milliseconds: 600),
+              reverseDuration: const Duration(milliseconds: 600),
+              type: PageTransitionType.rightToLeftWithFade,
+              child: const BootPage(title: '',),
+            ));
+      }
+    }
   }
 
   @override
