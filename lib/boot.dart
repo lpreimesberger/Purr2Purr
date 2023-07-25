@@ -63,7 +63,7 @@ class _BootPageState extends State<BootPage> {
           Center(
 
             child: Column( children: [
-              Container(color: Colors.black, height: 400, width: 400, child: const Column( children: [
+              Container(color: Colors.black, height: 400, width: 400, child: Column( children: [
                  Text(style: st,"Greetings Burner!"),
                 Align(
                   alignment: Alignment.center, // Align however you like (i.e .centerRight, centerLeft)
