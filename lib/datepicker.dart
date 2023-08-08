@@ -8,9 +8,9 @@ class DateTimePickerBottomSheet extends StatefulWidget {
   State<StatefulWidget> createState() => _DateTimePickerBottomSheetState();
 }
 
-const String MIN_DATETIME = '2022-08-28 00:00:00';
-const String MAX_DATETIME = '2022-09-05 23:00:00';
-const String INIT_DATETIME = '2022-09-01 23:00:00';
+const String MIN_DATETIME = '2023-08-27 00:00:00';
+const String MAX_DATETIME = '2023-09-04 23:00:00';
+const String INIT_DATETIME = '2023-09-01 23:00:00';
 
 class _DateTimePickerBottomSheetState extends State<DateTimePickerBottomSheet> {
   bool? _showTitle = true;

@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get_storage/get_storage.dart';
@@ -96,7 +97,7 @@ class _MyHomePageState extends State<MyHomePage> {
     setState(() {
       loading = false;
     });
-    if(rn.isAfter(gateOpen)){
+    if(rn.isAfter(gateOpen) || ! kReleaseMode){
       if (context.mounted) {
         Navigator.push(context,
             PageTransition(
